@@ -1,0 +1,15 @@
+# Kafka image without the service, so you can run ./bin/ stuff
+# kubectl exec -ti testclient -- /bin/bash
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kafkaconsumerdb
+  namespace: kafka
+spec:
+  containers:
+  - name: testconsdb
+    image: kafka_consumer_db:v1
+    imagePullPolicy: IfNotPresent
+    command:
+      - python
+      - app.py
