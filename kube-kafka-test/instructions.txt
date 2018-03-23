@@ -1,0 +1,78 @@
+
+#
+# PYTHON
+#
+
+# BUILD
+cd kafka-python-consumer
+docker build -t kafka-python-consumer:v1 .
+cd ..
+
+cd kafka-python-producer
+docker build -t kafka-python-producer:v1 .
+cd ..
+
+
+# RUN 
+kubectl --namespace=kafka run kafka-python-consumer --image kafka-python-consumer:v1
+kubectl --namespace=kafka run kafka-python-producer --image kafka-python-producer:v1
+
+# Get pod names:
+kubectl --namespace=kafka get pods
+
+# Get start time (seconds since epoch):
+kubectl --namespace=kafka exec kafka-python-producer-xxxxxx cat timestamp.txt
+
+# Get end time (seconds since epoch):
+kubectl --namespace=kafka exec kafka-python-consumer-xxxxxx cat timestamp.txt
+
+# calculate throughput (messages / second):
+echo "100000/(<endtime>-<starttime>)" | bc
+
+# delete deployments
+kubectl --namespace=kafka delete deployment kafka-python-consumer
+kubectl --namespace=kafka delete deployment kafka-python-producer
+
+
+#
+# GO
+#
+
+# BUILD
+cd kafka-go
+docker build -t kafka-go:v1 .
+cd ..
+
+cd kafka-go-consumer
+docker build -t kafka-go-consumer:v1 .
+cd ..
+
+cd kafka-go-sync-producer
+docker build -t kafka-go-sync-producer:v1 .
+cd ..
+
+cd kafka-go-async-producer
+docker build -t kafka-go-async-producer:v1 .
+cd ..
+
+# RUN SYNC TEST
+kubectl --namespace=kafka run kafka-go-consumer --image kafka-go-consumer:v1
+kubectl --namespace=kafka run kafka-go-sync-producer --image kafka-go-sync-producer:v1
+
+kubectl --namespace=kafka get pods
+
+kubectl --namespace=kafka logs kafka-go-consumer-xxxx | tail
+kubectl --namespace=kafka logs kafka-go-sync-producer-xxxx
+
+kubectl --namespace=kafka delete deployment kafka-go-sync-producer
+
+# RUN ASYNC TEST
+kubectl --namespace=kafka run kafka-go-async-producer --image kafka-go-async-producer:v1
+
+kubectl --namespace=kafka get pods
+
+kubectl --namespace=kafka logs kafka-go-consumer-xxxx | tail
+kubectl --namespace=kafka logs kafka-go-async-producer-xxxx
+
+kubectl --namespace=kafka delete deployment kafka-go-consumer
+kubectl --namespace=kafka delete deployment kafka-go-async-producer
